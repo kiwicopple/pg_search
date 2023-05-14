@@ -122,7 +122,7 @@ export default Page
 `.trim()
 
 type Document = Database['public']['Tables']['documents']['Row']
-type UpsertableDocument = Pick<Document, 'content_id' | 'content' | 'meta'>
+type UpsertableDocument = Pick<Document, 'context_id' | 'content' | 'meta'>
 const random = (Math.random() + 1).toString(36)
 const id = `rand/${random}`
 let sections: UpsertableDocument[] = []
@@ -134,7 +134,7 @@ beforeAll(async () => {
   })
   sections =
     chunks.data?.map((chunk: string) => ({
-      content_id: id,
+      context_id: id,
       content: chunk,
       meta: { test: 'test' },
     })) || []
@@ -209,4 +209,17 @@ test('upsert_context()', async () => {
 
   // expect(nochange.status).toBe(304)
   expect(updated.data?.id).toBe(id)
+})
+
+it('should return documents that match the query', async () => {
+  const query = 'tables'
+
+  const results = await supabase.rpc('text_search', {
+    query,
+  })
+
+  console.log('results', results)
+
+  expect(results.data).toHaveLength(2)
+  results.data && expect(results.data[0].context_id).toEqual(id)
 })

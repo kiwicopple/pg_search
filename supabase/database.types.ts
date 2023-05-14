@@ -57,7 +57,7 @@ export interface Database {
       documents: {
         Row: {
           content: string
-          content_id: string
+          context_id: string
           fts: unknown | null
           id: number
           meta: Json | null
@@ -65,7 +65,7 @@ export interface Database {
         }
         Insert: {
           content: string
-          content_id: string
+          context_id: string
           fts?: unknown | null
           id?: number
           meta?: Json | null
@@ -73,11 +73,34 @@ export interface Database {
         }
         Update: {
           content?: string
-          content_id?: string
+          context_id?: string
           fts?: unknown | null
           id?: number
           meta?: Json | null
           updated_at?: string
+        }
+      }
+      queries: {
+        Row: {
+          created_at: string
+          feedback: Json | null
+          id: string
+          query: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feedback?: Json | null
+          id?: string
+          query: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feedback?: Json | null
+          id?: string
+          query?: string
+          user_id?: string | null
         }
       }
     }
@@ -103,6 +126,19 @@ export interface Database {
           "": unknown
         }
         Returns: unknown
+      }
+      text_search: {
+        Args: {
+          query: string
+        }
+        Returns: {
+          document_id: number
+          document_meta: Json
+          content: string
+          context_id: string
+          context_meta: Json
+          query_id: string
+        }[]
       }
       upsert_context: {
         Args: {
