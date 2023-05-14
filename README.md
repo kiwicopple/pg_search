@@ -161,3 +161,7 @@ const { data, error } = await supabase.rpc('content_checksum', {
 ```
 
 
+## Todos
+
+- the tsvector is "english". Switch to pgroonga?
+- Vectors: how do we determine the dimensions at runtime?

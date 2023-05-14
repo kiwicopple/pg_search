@@ -121,6 +121,25 @@ export default Page
 
 `.trim()
 
+type Document = Database['public']['Tables']['documents']['Row']
+type UpsertableDocument = Pick<Document, 'content_id' | 'content' | 'meta'>
+const random = (Math.random() + 1).toString(36)
+const id = `rand/${random}`
+let sections: UpsertableDocument[] = []
+
+beforeAll(async () => {
+  const chunks = await supabase.rpc('chunks', {
+    content: markdown,
+    delimiter: '###',
+  })
+  sections =
+    chunks.data?.map((chunk: string) => ({
+      content_id: id,
+      content: chunk,
+      meta: { test: 'test' },
+    })) || []
+})
+
 test('content_checksum()', async () => {
   const { data, error } = await supabase.rpc('content_checksum', {
     content: 'hello world',
@@ -144,13 +163,12 @@ test('chunks()', async () => {
 })
 
 test('upsert_context()', async () => {
-  let random = (Math.random() + 1).toString(36)
-  let id = `rand/${random}`
   // Insert and expect 201
   const insert = await supabase.rpc('upsert_context', {
     id,
     content: random,
     meta: { test: 'test' },
+    documents: sections,
   })
 
   if (insert.error) {
@@ -167,6 +185,7 @@ test('upsert_context()', async () => {
     id,
     content: random,
     meta: { test: 'test' },
+    documents: sections,
   })
 
   if (nochange.error) {
@@ -181,6 +200,7 @@ test('upsert_context()', async () => {
     id,
     content: random + 'updated',
     meta: { test: 'test' },
+    documents: sections,
   })
 
   if (updated.error) {

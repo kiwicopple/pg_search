@@ -54,6 +54,32 @@ export interface Database {
           updated_at?: string
         }
       }
+      documents: {
+        Row: {
+          content: string
+          content_id: string
+          fts: unknown | null
+          id: number
+          meta: Json | null
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          content_id: string
+          fts?: unknown | null
+          id?: number
+          meta?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          content_id?: string
+          fts?: unknown | null
+          id?: number
+          meta?: Json | null
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -72,11 +98,18 @@ export interface Database {
         }
         Returns: string
       }
+      ivfflathandler: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
       upsert_context: {
         Args: {
           id: string
           content: string
           meta: Json
+          documents: Json
         }
         Returns: {
           checksum: string | null
@@ -84,6 +117,42 @@ export interface Database {
           meta: Json | null
           updated_at: string
         }
+      }
+      vector_avg: {
+        Args: {
+          "": number[]
+        }
+        Returns: unknown
+      }
+      vector_dims: {
+        Args: {
+          "": unknown
+        }
+        Returns: number
+      }
+      vector_norm: {
+        Args: {
+          "": unknown
+        }
+        Returns: number
+      }
+      vector_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
       }
     }
     Enums: {
