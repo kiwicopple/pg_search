@@ -6,16 +6,34 @@ create table context (
   "meta" jsonb -- can store things like "type" or "path"
 );
 
-
--- Creates a SQL function "content_checksum()" that takes some text and returns the checksum of that text.
+-- Returns the checksum of any text.
 create or replace function content_checksum(content text)
 returns text 
 language plpgsql stable
-AS $$
-BEGIN
-    RETURN md5(content);
-END;
+as $$
+begin
+    return md5(content);
+end;
 $$;
+
+-- Splits any text into chunks based on a delimiter using the regexp_spit_to_table() function.
+-- Includes the delimiter in the result.
+-- Delimiter should NOT be a regex pattern, it should be an exact string.
+create or replace function chunks(content text, delimiter text)
+returns setof text
+language plpgsql stable
+as $$
+begin
+  -- Inject a custom delimiter before each match, because the regex will remove the delimiter
+  content := replace(content, delimiter, '{SPLIT_CHUNK}' || delimiter);
+
+  -- Split by the delimiter
+  return query 
+  with split as ( select regexp_split_to_table(content, '{SPLIT_CHUNK}') as chunk )
+  select * from split where chunk <> '';
+end;
+$$;
+
 
 -- Creates a SQL function "upsert_context()" that takes an id, content, and meta and upserts the context table.
 -- If the content has changed, it will update the checksum and updated_at.

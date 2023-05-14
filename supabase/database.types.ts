@@ -59,6 +59,13 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
+      chunks: {
+        Args: {
+          content: string
+          delimiter: string
+        }
+        Returns: string[]
+      }
       content_checksum: {
         Args: {
           content: string
