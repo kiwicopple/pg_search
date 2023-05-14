@@ -167,5 +167,9 @@ const { data, status } = await supabase.rpc('has_context_changed', {
   - the tsvector is "english". Switch to pgroonga?
   - should we partition the tables by locale? I doubt we'd ever need to search japanese docs when the user is searching in english
 - Loading Documents
-  - Should we remove the old documents when the new docs are updated. Will this be an issue? Should we run some sort of append-only structure, and only remove after the index is rebuilt?
+  - Should we remove the old documents when the new docs are updated. Will this be an issue? Should we run some sort of append-only structure? This will also help us with query analytics (we can store the IDs that were returned each query, rather than the entire document in the search results).
   - TODO: each document has an `id` (uuidv4), which we can allow the developer to set the ID, and we don't need to update this document if the checksum hasn't changed.
+  - How should we partition this?
+- Query analytics
+  - Should we store the returned docs or just an array of document IDs
+  - What else do we need to store? (ratings, # docs requested, #docs returned, etc)
