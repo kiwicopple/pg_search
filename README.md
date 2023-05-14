@@ -3,7 +3,7 @@
 A Postgres extension for searching:
 
 - Full text search: regular text search using Postgres Full Text Search.
-- Vector search: similarity search using pgvector
+- Semantic search: similarity search using pgvector
 - Autocomplete (TBD): a list of terms that is preloaded into your app for autocomplete. Uses pgtrgm.
 
 When a user performs a query their query is stored in a `queries` table for analysis and retrieval.
@@ -53,7 +53,7 @@ const { data } = supabase.rpc('text_search', {
 Semantic search works is useful for similarity search.
 
 ```js
-const { data } = supabase.rpc('text_search', {
+const { data } = supabase.rpc('similarity_search', {
     query: 'some query string',
     rows: 10, // defaults to 10 results returned at a time
     threshold: 0.7 // the similarity threshold. Higher is more similar
