@@ -59,7 +59,7 @@ export interface Database {
           content: string
           context_id: string
           fts: unknown | null
-          id: number
+          id: string
           meta: Json | null
           updated_at: string
         }
@@ -67,7 +67,7 @@ export interface Database {
           content: string
           context_id: string
           fts?: unknown | null
-          id?: number
+          id?: string
           meta?: Json | null
           updated_at?: string
         }
@@ -75,7 +75,7 @@ export interface Database {
           content?: string
           context_id?: string
           fts?: unknown | null
-          id?: number
+          id?: string
           meta?: Json | null
           updated_at?: string
         }
@@ -127,20 +127,7 @@ export interface Database {
         }
         Returns: unknown
       }
-      text_search: {
-        Args: {
-          query: string
-        }
-        Returns: {
-          document_id: number
-          document_meta: Json
-          content: string
-          context_id: string
-          context_meta: Json
-          query_id: string
-        }[]
-      }
-      upsert_context: {
+      load_documents: {
         Args: {
           id: string
           content: string
@@ -153,6 +140,19 @@ export interface Database {
           meta: Json | null
           updated_at: string
         }
+      }
+      text_search: {
+        Args: {
+          query: string
+        }
+        Returns: {
+          document_id: string
+          document_meta: Json
+          content: string
+          context_id: string
+          context_meta: Json
+          query_id: string
+        }[]
       }
       vector_avg: {
         Args: {

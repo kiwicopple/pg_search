@@ -127,6 +127,9 @@ const random = (Math.random() + 1).toString(36)
 const id = `rand/${random}`
 let sections: UpsertableDocument[] = []
 
+/**
+ * Insert some markdown into the database.
+ */
 beforeAll(async () => {
   const chunks = await supabase.rpc('chunks', {
     content: markdown,
@@ -140,6 +143,9 @@ beforeAll(async () => {
     })) || []
 })
 
+/**
+ * Returns the MD5 checksum of the content.
+ */
 test('content_checksum()', async () => {
   const { data, error } = await supabase.rpc('content_checksum', {
     content: 'hello world',
@@ -149,6 +155,9 @@ test('content_checksum()', async () => {
   expect(error).toBeNull()
 })
 
+/**
+ * Splits a long piece of text into chunks.
+ */
 test('chunks()', async () => {
   const { data, error } = await supabase.rpc('chunks', {
     content: markdown,
@@ -162,9 +171,12 @@ test('chunks()', async () => {
   }
 })
 
-test('upsert_context()', async () => {
+/**
+ * Load documents into the database
+ */
+test('load_documents()', async () => {
   // Insert and expect 201
-  const insert = await supabase.rpc('upsert_context', {
+  const insert = await supabase.rpc('load_documents', {
     id,
     content: random,
     meta: { test: 'test' },
@@ -181,7 +193,7 @@ test('upsert_context()', async () => {
   let insertedAt = insert.data?.updated_at
 
   // Unmodified should return 234
-  const nochange = await supabase.rpc('upsert_context', {
+  const nochange = await supabase.rpc('load_documents', {
     id,
     content: random,
     meta: { test: 'test' },
@@ -196,7 +208,7 @@ test('upsert_context()', async () => {
   expect(nochange.data?.updated_at).toBe(insertedAt)
 
   // Update and expect 200
-  const updated = await supabase.rpc('upsert_context', {
+  const updated = await supabase.rpc('load_documents', {
     id,
     content: random + 'updated',
     meta: { test: 'test' },
@@ -211,14 +223,15 @@ test('upsert_context()', async () => {
   expect(updated.data?.id).toBe(id)
 })
 
+/**
+ * Searches for documents that match the query
+ */
 it('should return documents that match the query', async () => {
   const query = 'tables'
 
   const results = await supabase.rpc('text_search', {
     query,
   })
-
-  console.log('results', results)
 
   expect(results.data).toHaveLength(2)
   results.data && expect(results.data[0].context_id).toEqual(id)

@@ -108,7 +108,7 @@ const documents = chunks.map((chunk, i) => {
 })
 
 // Store and index the files
-const { data, status } = await supabase.rpc('upsert_context', {
+const { data, status } = await supabase.rpc('load_documents', {
     id: 'developer.mozilla.org/intro', 
     content: markdown,
     meta: { source: 'docs', url: 'https://developer.mozilla.org/intro' },
@@ -120,11 +120,12 @@ const { data, status } = await supabase.rpc('upsert_context', {
 // status == 234: if there has been no change since last time
 ```
 
-TODO: should we run checks in "upsert_context"?
+TODO: should we run checks in "load_documents"?
 
 - When the documents are inserted the indexes are built in the background. This can take time.
 - Old documents are automatically removed when the data is updated. 
   - TODO: will this be an issue? Should we run some sort of append-only structure, and only remove after the index is rebuilt?
+  - TODO: each document has an `id` (uuidv4), which we can allow the developer to set the ID, and we don't need to update this document if the checksum hasn't changed.
 
 
 ## Chunking
