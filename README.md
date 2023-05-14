@@ -62,7 +62,7 @@ const { data } = supabase.rpc('similarity_search', {
 
 Every search query is stored in a table and can be analyzed later to improve performance.
 
-## Usage: Indexing
+## Usage: Storing & Indexing Documents
 
 Checksums are used to verify when content has changed. It's expensive to re-index your content often, so if the checksum hasn't changed then you can skip any updates.
 
@@ -120,12 +120,8 @@ const { data, status } = await supabase.rpc('load_documents', {
 // status == 234: if there has been no change since last time
 ```
 
-TODO: should we run checks in "load_documents"?
 
-- When the documents are inserted the indexes are built in the background. This can take time.
-- Old documents are automatically removed when the data is updated. 
-  - TODO: will this be an issue? Should we run some sort of append-only structure, and only remove after the index is rebuilt?
-  - TODO: each document has an `id` (uuidv4), which we can allow the developer to set the ID, and we don't need to update this document if the checksum hasn't changed.
+When the documents are inserted the indexes are built in the background. This can take time.
 
 
 ## Chunking
@@ -147,6 +143,11 @@ For advanced use cases, we suggest you use more robust functions like Langchain'
 ## Helpers
 
 ```js
+// Get an MD5 checksum of some content
+const { data, error } = await supabase.rpc('content_checksum', {
+    content: '# Intro \n Welcome to MDN.'
+})
+
 // Check if the content has changed
 const { data, status } = await supabase.rpc('has_context_changed', {
     // A natural identifier that you can re-use in the future:
@@ -154,15 +155,17 @@ const { data, status } = await supabase.rpc('has_context_changed', {
     // The content which we want to check:
     content: '# Intro \n Welcome to MDN.'
 })
-
-// Get a checksum of some content
-const { data, error } = await supabase.rpc('content_checksum', {
-    content: '# Intro \n Welcome to MDN.'
-})
 ```
 
 
-## Todos
+## Todos & Questions
 
-- the tsvector is "english". Switch to pgroonga?
-- Vectors: how do we determine the dimensions at runtime?
+- Vectors
+  - how do we determine the dimensions at runtime?
+  - How do we run the index using supabase
+- Multilingual: 
+  - the tsvector is "english". Switch to pgroonga?
+  - should we partition the tables by locale? I doubt we'd ever need to search japanese docs when the user is searching in english
+- Loading Documents
+  - Should we remove the old documents when the new docs are updated. Will this be an issue? Should we run some sort of append-only structure, and only remove after the index is rebuilt?
+  - TODO: each document has an `id` (uuidv4), which we can allow the developer to set the ID, and we don't need to update this document if the checksum hasn't changed.
