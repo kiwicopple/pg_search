@@ -8,5 +8,6 @@ create unlogged table search_query (
   created_at timestamptz default timezone('utc'::text, now()) not null,
   query text not null,
   user_id text, --optional
+  search_method text not null,
   feedback jsonb
 );
