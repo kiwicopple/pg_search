@@ -123,6 +123,30 @@ const { data, status } = await supabase.rpc('load_documents', {
 
 When the documents are inserted the indexes are built in the background. This can take time.
 
+## Search analytics
+
+All searches are stored inside the `queries` table. This table includes:
+
+
+- "id": a uuid is returned for every query
+- "query": the query text is stored for later analysis
+- "user_id": you can optionally send the userid who ran this query
+- "feedback": for storing user feedback on the results of the query (thumbs up/down, rating, etc)
+
+**Adding query feedback**
+
+You can gather information about your queries from your users and store them in the database:
+
+```js
+const { data, error } = supabase
+    .from('queries')
+    .update({
+        feedback: { score: 5, comment: 'incorrect link' }
+    })
+    .match({ user_id: 'XX', id: 'query-uuid' })
+```
+
+The user ID and query ID must match, otherwise an error will be thrown.
 
 ## Chunking
 
@@ -173,3 +197,5 @@ const { data, status } = await supabase.rpc('has_context_changed', {
 - Query analytics
   - Should we store the returned docs or just an array of document IDs
   - What else do we need to store? (ratings, # docs requested, #docs returned, etc)
+- Add RLS to tables.
+  - adding query feedback - payload size limit?
