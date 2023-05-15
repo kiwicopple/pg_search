@@ -184,9 +184,9 @@ const { data, status } = await supabase.rpc('has_context_changed', {
 
 ## Todos & Questions
 
-- Vectors
+- Vectors 
+  - How do we run the index using supabase (using Supabase Vector)
   - how do we determine the dimensions at runtime?
-  - How do we run the index using supabase
 - Multilingual: 
   - the tsvector is "english". Switch to pgroonga?
   - should we partition the tables by locale? I doubt we'd ever need to search japanese docs when the user is searching in english
