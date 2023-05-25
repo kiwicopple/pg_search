@@ -121,11 +121,11 @@ export default Page
 
 `.trim()
 
-type Document = Database['public']['Tables']['documents']['Row']
-type UpsertableDocument = Pick<Document, 'context_id' | 'content' | 'meta'>
+type Span = Database['public']['Tables']['spans']['Row']
+type UpsertableSpan = Pick<Span, 'document_id' | 'content' | 'meta'>
 const random = (Math.random() + 1).toString(36)
 const id = `rand/${random}`
-let sections: UpsertableDocument[] = []
+let sections: UpsertableSpan[] = []
 
 /**
  * Insert some markdown into the database.
@@ -137,7 +137,7 @@ beforeAll(async () => {
   })
   sections =
     chunks.data?.map((chunk: string) => ({
-      context_id: id,
+      document_id: id,
       content: chunk,
       meta: { test: 'test' },
     })) || []
@@ -180,7 +180,7 @@ test('load_documents()', async () => {
     id,
     content: random,
     meta: { test: 'test' },
-    documents: sections,
+    spans: sections,
   })
 
   if (insert.error) {
@@ -197,7 +197,7 @@ test('load_documents()', async () => {
     id,
     content: random,
     meta: { test: 'test' },
-    documents: sections,
+    spans: sections,
   })
 
   if (nochange.error) {
@@ -212,7 +212,7 @@ test('load_documents()', async () => {
     id,
     content: random + 'updated',
     meta: { test: 'test' },
-    documents: sections,
+    spans: sections,
   })
 
   if (updated.error) {
@@ -234,5 +234,5 @@ it('should return documents that match the query', async () => {
   })
 
   expect(results.data).toHaveLength(2)
-  results.data && expect(results.data[0].context_id).toEqual(id)
+  results.data && expect(results.data[0].document_id).toEqual(id)
 })

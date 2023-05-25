@@ -10,17 +10,25 @@ When a user performs a query their query is stored in a `queries` table for anal
 
 ## Getting started
 
-```sql
--- Coming soon
-select dbdev.install('supabase-search');
-```
+1. Fork this repo
+2. Run `cp .env.sample > .env` and fill in the relevant production secrets.
+3. Run `supabase db push && supabase functions deploy`
+5. Add the GitHub action ingest your docs on every PR.
 
+Note: we recommend that you don't break the fork, then you can pull the latest updates at any time"
+
+**Updating**:
+
+1. `git fetch upstream`
+2. `git checkout main`
+3. `git merge upstream/main`
+4. `supabase db push && supabase functions deploy`
 ## Concepts
 
 There are 2 important concepts: 
 
-1. *Documents*: chunks of searchable content.
-2. *Context*: stores important context about the documents, usually webpage information. 
+1. *Documents*: stores important context about the documents, usually webpage information. 
+2. *Spans*: chunks of searchable content.
 
 Imagine you have a website with the following pages and sections
 
@@ -54,7 +62,7 @@ Semantic search works is useful for similarity search.
 
 ```js
 const { data } = supabase.rpc('similarity_search', {
-    query: 'some query string',
+    embedding, // You can supply an embedding to this function
     rows: 10, // defaults to 10 results returned at a time
     threshold: 0.7 // the similarity threshold. Higher is more similar
 })
@@ -63,6 +71,8 @@ const { data } = supabase.rpc('similarity_search', {
 Every search query is stored in a table and can be analyzed later to improve performance.
 
 ## Usage: Storing & Indexing Documents
+
+You can also run this processing manually.
 
 Checksums are used to verify when content has changed. It's expensive to re-index your content often, so if the checksum hasn't changed then you can skip any updates.
 
@@ -88,7 +98,7 @@ const isIndexed = await supabase.rpc('has_content_changed', {
     content: markdown
 })
 
-// Exit if the content is already indexd
+// Exit if the content is already indexed
 if (isIndexed.status == 304) {
     return 'Already indexed.'
 }
@@ -111,7 +121,7 @@ const documents = chunks.map((chunk, i) => {
 const { data, status } = await supabase.rpc('load_documents', {
     id: 'developer.mozilla.org/intro', 
     content: markdown,
-    meta: { source: 'docs', url: 'https://developer.mozilla.org/intro' },
+    meta: { source: 'docs', url: 'developer.mozilla.org/intro' },
     documents
 })
 

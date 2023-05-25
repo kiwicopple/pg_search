@@ -1,0 +1,47 @@
+[
+  {
+    "id": "docs.example.com/intro.mdx",
+    "checksum": "5e88b6d0b9d2129c13268bbbc0808b5b",
+    "spans": [
+      {
+        "content": "# Intro\n\nWelcome to MDN."
+      },
+      {
+        "content": "## What is MDN?\n\nMDN is where developers learn"
+      },
+      {
+        "content": "## How to use it?\n\nRead it, search it, start building\n"
+      }
+    ]
+  },
+  {
+    "id": "docs.example.com/nested/feature.mdx",
+    "checksum": "b4ce96a848e4c4e21c3b88fa08738380",
+    "spans": [
+      {
+        "content": "# Feature\n\nThis is a feature."
+      },
+      {
+        "content": "## What does it do?\n\nNothing yet."
+      },
+      {
+        "content": "## When does it do it?\n\nNever.\n\n#### Some subfeature\n\nBut it doesn't split heading level 4.\n"
+      }
+    ]
+  },
+  {
+    "id": "docs.example.com/outro.mdx",
+    "checksum": "8a88f01b2c46121c5caea7d6c3c33275",
+    "spans": [
+      {
+        "content": "# Outro\n\nGoodbye."
+      },
+      {
+        "content": "## Why are you leaving?\n\nWe have so much more to learn."
+      },
+      {
+        "content": "## Did you grow as a human?\n\nAll that matters is the friends we made along the way.\n"
+      }
+    ]
+  }
+]

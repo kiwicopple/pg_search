@@ -1,22 +1,25 @@
 create extension if not exists vector;
 
--- Stores to top-level context of a document.
-create table context ( 
-  "id" text primary key, -- natural key - can be a URL, a document id, etc. User to provide.
+-- Stores to top-level document of a span.
+create table document ( 
+  "id" text primary key, -- natural key - can be a URL, a span id, etc. User to provide.
   "updated_at" timestamp with time zone default timezone('utc'::text, now()) not null,
   "checksum" text, -- the checksum of the content so that a developer can check if the content has changed
   "meta" jsonb -- can store things like "type" or "path"
 );
 
--- Stores the content of a document - small chunks of text
-create table documents ( 
+-- Stores the content of a span - small chunks of text
+create table spans ( 
   "id" uuid primary key default uuid_generate_v4(), 
   "updated_at" timestamp with time zone default timezone('utc'::text, now()) not null,
-  "context_id" text references "context" not null,
-  "content" text not null, -- the content of the document
+  "document_id" text references "document" not null,
+  "content" text not null, -- the content of the span
   "meta" jsonb, -- store the section slug, page slug, etc
   "fts" tsvector generated always as (to_tsvector('english', content)) stored
 );
+
+-- Indexes the content of the span for full-text search.
+create index idx_span_fts ON spans using gin (fts);
 
 -- create an unlogged table to store all the queries that we receive
 create unlogged table queries (
@@ -26,9 +29,6 @@ create unlogged table queries (
   "user_id" text, --optional
   "feedback" jsonb
 );
-
--- Indexes the content of the document for full-text search.
-create index idx_document_meta ON documents using gin (meta);
 
 -- Returns the checksum of any text.
 create or replace function content_checksum(content text)
@@ -58,29 +58,29 @@ begin
 end;
 $$;
 
--- Creates a SQL function "load_documents()" that takes an id, content, and meta and upserts the context table.
+-- Creates a SQL function "load_documents()" that takes an id, content, and meta and upserts the document table.
 -- If the content has changed, it will update the checksum and updated_at.
 -- If the content has not changed, it return a 304 (Not Modified).
 create or replace function load_documents(
     id text, 
     content text, 
     meta jsonb,
-    documents jsonb
+    spans jsonb
 )
-returns context
+returns document
 language plpgsql
 as $$
 declare
   new_checksum text;
-  existing context%rowtype;
-  new_row context%rowtype;
-  updated_row context%rowtype;
+  existing document%rowtype;
+  new_row document%rowtype;
+  updated_row document%rowtype;
 begin
     new_checksum := content_checksum(content);
 
     select * into existing 
-    from context 
-    where context.id = load_documents.id 
+    from document 
+    where document.id = load_documents.id 
     limit 1;
 
     -- if the checksum is the same, return 234 (Not Modified)
@@ -91,46 +91,46 @@ begin
 
     -- if there is no existing row, insert and return 201 (Created)
     if existing is null then
-        insert into context (id, checksum, meta)
+        insert into document (id, checksum, meta)
         values (id, new_checksum, meta)
         returning * into new_row;
 
-        insert into documents (context_id, content, meta)
+        insert into spans (document_id, content, meta)
         select load_documents.id, elem->'content', elem->'meta'
-        from jsonb_array_elements(to_jsonb(documents)) AS elem;
+        from jsonb_array_elements(to_jsonb(spans)) AS elem;
 
         perform set_config('response.status', '201', true);
         return new_row;
     end if;
 
 
-    -- if the checksum is different, update the documents and return 200 (OK)
-    update context
+    -- if the checksum is different, update the spans and return 200 (OK)
+    update document
     set 
         checksum = new_checksum, 
         updated_at = timezone('utc'::text, now()), 
         meta = load_documents.meta
-    where context.id = load_documents.id
+    where document.id = load_documents.id
     returning * into updated_row;
 
-    delete from documents where context_id = load_documents.id;
+    delete from spans where document_id = load_documents.id;
 
-    insert into documents (context_id, content, meta)
+    insert into spans (document_id, content, meta)
     select id, elem->'content', elem->'meta'
-    from jsonb_array_elements(to_jsonb(documents)) AS elem;
+    from jsonb_array_elements(to_jsonb(spans)) AS elem;
     
     return updated_row;
 end;
 $$;
 
--- create a query function that takes a query and returns the documents, saving the query to the queries table
+-- create a query function that takes a query and returns the spans, saving the query to the queries table
 create or replace function text_search(query text)
 returns table(
-    document_id uuid, 
-    document_meta jsonb, 
+    span_id uuid, 
+    span_meta jsonb, 
     content text, 
-    context_id text, 
-    context_meta jsonb, 
+    document_id text, 
+    document_meta jsonb, 
     query_id uuid
 )
 language plpgsql
@@ -144,18 +144,18 @@ begin
     
     return query
     select 
-        documents.id as document_id,
-        documents.meta as document_meta,
-        documents.content,
-        documents.context_id,
-        context.meta as context_meta,
+        spans.id as span_id,
+        spans.meta as span_meta,
+        spans.content,
+        spans.document_id,
+        document.meta as document_meta,
         new_row.id as query_id
     from 
-        documents 
+        spans 
     join 
-        context 
+        document 
     on 
-        documents.context_id = context.id
+        spans.document_id = document.id
     where fts @@ plainto_tsquery(query);
 end;
 $$;
